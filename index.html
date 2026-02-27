@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Design Request Builder — Quick Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f5f5;
+    --surface: #ffffff;
+    --surface2: #f0f0f0;
+    --border: #e0e0e0;
+    --accent: #00B5F0;
+    --accent-dim: rgba(0, 181, 240, 0.15);
+    --accent-bg: rgba(0, 181, 240, 0.08);
+    --accent-dark: #0090c0;
+    --urban-blue: #00B5F0;
+    --urban-gray: #9B9B9B;
+    --urban-yellow: #FCB52F;
+    --urban-black: #151515;
+    --text: #151515;
+    --text-muted: #aaaaaa;
+    --text-mid: #666666;
+    --sans: 'DM Sans', sans-serif;
+    --red: #ef4444;
+    --red-dim: rgba(239,68,68,0.08);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app-page { min-height: 100vh; display: flex; flex-direction: column; }
+
+  .app-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 3px solid var(--urban-blue);
+    background: var(--urban-black);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.6);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .back-btn:hover { border-color: var(--urban-blue); color: var(--urban-blue); }
+
+  .app-topbar-icon {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .app-topbar-title { font-size: 16px; font-weight: 600; color: #ffffff; }
+
+  .app-content {
+    flex: 1;
+    padding: 24px 20px 64px;
+    max-width: 780px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* ── Notes Header ───────────────────────────────── */
+  .notes-header {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  input[type="text"], textarea, select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 9px 11px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+  }
+  textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
+  select { -webkit-appearance: none; appearance: none; cursor: pointer; }
+  ::placeholder { color: var(--text-muted); }
+
+  /* ── Section Cards ──────────────────────────────── */
+  .sections-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: fadeIn 0.18s ease;
+    border-left: 3px solid var(--urban-blue);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .section-header:hover { background: #e8e8e8; }
+
+  .section-drag { color: var(--text-muted); font-size: 14px; cursor: grab; }
+
+  .section-title-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    border-radius: 0;
+    padding: 2px 4px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    box-shadow: none;
+  }
+  .section-title-input:focus {
+    border-bottom-color: var(--accent);
+    box-shadow: none;
+    outline: none;
+  }
+
+  .section-chevron {
+    color: var(--text-muted);
+    font-size: 12px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .section-card.collapsed .section-chevron { transform: rotate(-90deg); }
+  .section-card.collapsed .section-body { display: none; }
+
+  .section-del-btn {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 16px;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .section-del-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+  .section-body { padding: 14px 16px; }
+
+  /* ── Items inside a section ─────────────────────── */
+  .items-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+
+  .item-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    align-items: start;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .item-bullet {
+    color: var(--accent);
+    font-size: 16px;
+    line-height: 1.6;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  .item-fields { display: flex; flex-direction: column; gap: 6px; }
+
+  .item-key-val {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .item-key-val input.key-input {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .item-key-val input.val-input {
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .item-sub-rows { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; padding-left: 12px; border-left: 2px solid var(--border); }
+
+  .item-sub-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; }
+  .item-sub-row input { font-size: 14px; }
+
+  .sub-input-wrap { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s; }
+  .sub-input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+  .sub-label { font-size: 14px; font-weight: 500; color: var(--text); padding: 9px 0 9px 11px; white-space: nowrap; flex-shrink: 0; }
+  .sub-value { font-size: 14px; border: none !important; box-shadow: none !important; background: transparent; padding: 9px 11px 9px 2px; flex: 1; min-width: 60px; outline: none; color: var(--text); font-family: var(--sans); }
+
+  .item-del-btn {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    color: var(--text-muted);
+    font-size: 14px;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+  .item-del-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+  .sub-del-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.12s;
+  }
+  .sub-del-btn:hover { color: var(--red); }
+
+  .item-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .btn-sm {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-mid);
+    transition: all 0.14s;
+  }
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Section add item ───────────────────────────── */
+  .section-add-item {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+
+  /* ── Add Section bar ────────────────────────────── */
+  .add-section-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: var(--accent); color: #0a0a0a; }
+  .btn-primary:hover { filter: brightness(1.12); }
+  .btn-ghost { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Preview / Output ───────────────────────────── */
+  .output-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    border-left: 3px solid var(--urban-blue);
+  }
+
+  .output-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--urban-black);
+  }
+
+  .output-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .copy-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 16px;
+    min-width: 170px;
+    border-radius: 7px;
+    cursor: pointer;
+    background: var(--urban-yellow);
+    color: var(--urban-black);
+    border: none;
+    overflow: hidden;
+    transition: background 0.25s ease, transform 0.1s;
+  }
+  .copy-btn:hover { background: #e8a520; transform: translateY(-1px); }
+  .copy-btn:active { transform: translateY(0px); }
+  .copy-btn.copied { background: #22c55e; color: #fff; }
+
+  .copy-btn .btn-label {
+    display: flex; align-items: center; gap: 6px;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .copy-btn .btn-success {
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .copy-btn.copied .btn-label  { opacity: 0; transform: translateY(-8px); }
+  .copy-btn.copied .btn-success { opacity: 1; transform: translateY(0); }
+
+  @keyframes ripple {
+    from { transform: scale(0); opacity: 0.5; }
+    to   { transform: scale(5); opacity: 0; }
+  }
+  .copy-ripple {
+    position: absolute;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.6);
+    pointer-events: none;
+    animation: ripple 0.55s ease-out forwards;
+    transform-origin: center;
+  }
+
+  .output-pre {
+    padding: 18px;
+    font-family: 'DM Sans', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 120px;
+  }
+
+  .output-empty { color: var(--text-muted); font-style: italic; }
+
+  /* ── Inline quick-add preset pills ─────────────── */
+  .preset-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-bottom: 2px;
+  }
+  .preset-pill {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-mid);
+    transition: all 0.14s;
+    white-space: nowrap;
+  }
+  .preset-pill:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+
+  .section-presets-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .signtype-sel {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-mid);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 10px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+    appearance: none;
+    width: auto;
+  }
+  .signtype-sel:focus { border-color: var(--accent); }
+
+  .section-empty-hint {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 6px 2px 2px;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 22px 0;
+  }
+
+  @media (max-width: 500px) {
+    .item-key-val { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app-page">
+  <div class="app-topbar">
+    <div class="app-topbar-icon" style="background:rgba(0,181,240,0.2)">📋</div>
+    <span class="app-topbar-title">Design Request Builder</span>
+  </div>
+
+  <div class="app-content">
+
+    <!-- Notes -->
+    <div class="notes-header" id="proj-header">
+      <div class="field">
+        <label>Notes</label>
+        <textarea id="proj-notes" placeholder="Any overall project notes…" oninput="renderOutput()"></textarea>
+      </div>
+    </div>
+
+    <!-- Sections -->
+    <div class="sections-list" id="sections-list"></div>
+
+    <!-- Add Section Bar -->
+    <div style="margin-bottom:10px;">
+      <div class="section-presets-label">Elevations</div>
+      <div class="preset-pills" id="elevation-presets"></div>
+    </div>
+    <div style="margin-bottom:10px; margin-top:14px;">
+      <div class="section-presets-label">Sign Types</div>
+      <div class="preset-pills" id="signtype-presets"></div>
+    </div>
+    <div class="add-section-bar">
+      <button class="btn btn-ghost" onclick="addSection()">+ Custom Section</button>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Output -->
+    <div class="output-box">
+      <div class="output-header">
+        <span class="output-label">Wrike-Ready Output</span>
+        <button class="copy-btn" id="copy-btn" onclick="copyOutput(event)">
+          <span class="btn-label">📋 Copy to Clipboard</span>
+          <span class="btn-success">✓ Copied!</span>
+        </button>
+      </div>
+      <div class="output-pre" id="output-pre"><span class="output-empty">Fill in the fields above to generate your design request…</span></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────────────
+//  DATA MODEL
+// ──────────────────────────────────────────
+
+let sections = [];
+let sectionCounter = 0;
+let itemCounter = 0;
+let subCounter = 0;
+
+// Elevation presets — start blank, no items
+const ELEVATION_PRESETS = [
+  { label: 'Front Elevation' },
+  { label: 'Side Elevation' },
+  { label: 'Rear Elevation' },
+];
+
+// Sign type item templates — Channel Letters first, others get one blank sub
+const SIGNTYPE_TEMPLATES = {
+  'Channel Letters': {
+    key: 'Channel Letters', val: '',
+    subs: ['Size: ', 'Faces: ', 'Trim Cap: ', 'Returns: ', 'Mount Type: ', 'Power Supplies: ', 'Position: ']
+  },
+  'Door Vinyl':        { key: 'Door Vinyl',        val: '', subs: [''] },
+  'Logo On Pan':       { key: 'Logo On Pan',        val: '', subs: [''] },
+  'Cabinet Sign':      { key: 'Cabinet Sign',       val: '', subs: [''] },
+  'Window Vinyl':      { key: 'Window Vinyl',       val: '', subs: [''] },
+  'Blade Sign':        { key: 'Blade Sign',         val: '', subs: [''] },
+  'Pylon Panel':       { key: 'Pylon Panel',        val: '', subs: [''] },
+  'Monument Panel':    { key: 'Monument',           val: '', subs: [''] },
+  'Wayfinding':        { key: 'Wayfinding',         val: '', subs: [''] },
+  'Other':             { key: '',                   val: '', subs: [''] },
+};
+
+// Ordered list for the dropdown
+const SIGNTYPE_OPTIONS = [
+  'Channel Letters',
+  'Door Vinyl',
+  'Logo On Pan',
+  'Cabinet Sign',
+  'Window Vinyl',
+  'Blade Sign',
+  'Pylon Panel',
+  'Monument Panel',
+  'Wayfinding',
+  'Other',
+];
+
+// Stand-alone section presets (sign types not tied to an elevation)
+const STANDALONE_PRESETS = [
+  { label: 'Pylon',            items: [{ key: 'Pylon Panel',    val: '', subs: [''] }] },
+  { label: 'Monument',         items: [{ key: 'Monument',     val: '', subs: [''] }] },
+  { label: 'Window Graphics',  items: [{ key: 'Window Vinyl',   val: '', subs: [''] }] },
+  { label: 'Interior Signage', items: [{ key: 'Interior Sign',  val: '', subs: [''] }] },
+  { label: 'Blade Sign',       items: [{ key: 'Blade Sign',     val: '', subs: [''] }] },
+  { label: 'Wayfinding',       items: [{ key: 'Wayfinding',     val: '', subs: [''] }] },
+  { label: 'Door Vinyl',       items: [{ key: 'Door Vinyl',     val: '', subs: [''] }] },
+];
+
+// ──────────────────────────────────────────
+//  SECTION MANAGEMENT
+// ──────────────────────────────────────────
+
+function addElevation(label) {
+  const id = ++sectionCounter;
+  sections.push({ id, title: label, collapsed: false, items: [] });
+  renderSections();
+  renderOutput();
+}
+
+function addStandaloneSection(preset) {
+  const id = ++sectionCounter;
+  const sec = { id, title: preset.label, collapsed: false, items: [] };
+  preset.items.forEach(pi => sec.items.push(makeItem(pi.key, pi.val, pi.subs)));
+  sections.push(sec);
+  renderSections();
+  renderOutput();
+}
+
+function addCustomSection() {
+  const id = ++sectionCounter;
+  sections.push({ id, title: 'New Section', collapsed: false, items: [] });
+  renderSections();
+  renderOutput();
+}
+
+function addSignTypeToSection(sid, typeName) {
+  const sec = sections.find(s => s.id === sid);
+  if (!sec || !typeName) return;
+  const tmpl = SIGNTYPE_TEMPLATES[typeName];
+  if (!tmpl) return;
+  sec.items.push(makeItem(tmpl.key, tmpl.val, tmpl.subs));
+  renderSections();
+  renderOutput();
+  // Reset the dropdown
+  const sel = document.getElementById(`signtype-sel-${sid}`);
+  if (sel) sel.value = '';
+}
+
+function makeItem(key='', val='', subs=[]) {
+  return {
+    id: ++itemCounter,
+    key,
+    val,
+    subs: subs.map(s => {
+      // Split "Size: " into label="Size: " value=""
+      // or a fully typed string like "Size: 30 Set" into label="Size: " value="30 Set"
+      const colonIdx = s.indexOf(': ');
+      if (colonIdx !== -1) {
+        return { id: ++subCounter, label: s.slice(0, colonIdx + 2), value: s.slice(colonIdx + 2) };
+      }
+      // No colon pattern — treat whole thing as a plain value with no label
+      return { id: ++subCounter, label: '', value: s };
+    })
+  };
+}
+
+function deleteSection(sid) {
+  sections = sections.filter(s => s.id !== sid);
+  renderSections();
+  renderOutput();
+}
+
+function toggleSection(sid) {
+  const s = sections.find(s => s.id === sid);
+  if (s) s.collapsed = !s.collapsed;
+  renderSections();
+}
+
+// ──────────────────────────────────────────
+//  ITEM MANAGEMENT
+// ──────────────────────────────────────────
+
+function addItem(sid) {
+  const sec = sections.find(s => s.id === sid);
+  if (!sec) return;
+  sec.items.push(makeItem());
+  renderSections();
+  renderOutput();
+}
+
+function deleteItem(sid, iid) {
+  const sec = sections.find(s => s.id === sid);
+  if (!sec) return;
+  sec.items = sec.items.filter(i => i.id !== iid);
+  renderSections();
+  renderOutput();
+}
+
+function addSub(sid, iid) {
+  const sec = sections.find(s => s.id === sid);
+  if (!sec) return;
+  const item = sec.items.find(i => i.id === iid);
+  if (!item) return;
+  item.subs.push({ id: ++subCounter, label: '', value: '' });
+  renderSections();
+  renderOutput();
+}
+
+function deleteSub(sid, iid, subId) {
+  const sec = sections.find(s => s.id === sid);
+  if (!sec) return;
+  const item = sec.items.find(i => i.id === iid);
+  if (!item) return;
+  item.subs = item.subs.filter(s => s.id !== subId);
+  renderSections();
+  renderOutput();
+}
+
+// ──────────────────────────────────────────
+//  READ VALUES FROM DOM → MODEL SYNC
+// ──────────────────────────────────────────
+
+function syncFromDOM() {
+  sections.forEach(sec => {
+    const titleEl = document.getElementById(`sec-title-${sec.id}`);
+    if (titleEl) sec.title = titleEl.value;
+
+    sec.items.forEach(item => {
+      const keyEl = document.getElementById(`item-key-${item.id}`);
+      const valEl = document.getElementById(`item-val-${item.id}`);
+      if (keyEl) item.key = keyEl.value;
+      if (valEl) item.val = valEl.value;
+
+      item.subs.forEach(sub => {
+        const subEl = document.getElementById(`sub-val-${sub.id}`);
+        if (subEl) sub.value = subEl.value;
+      });
+    });
+  });
+}
+
+// ──────────────────────────────────────────
+//  RENDER SECTIONS TO DOM
+// ──────────────────────────────────────────
+
+function renderSections() {
+  const container = document.getElementById('sections-list');
+  container.innerHTML = '';
+
+  const signTypeOptions = SIGNTYPE_OPTIONS.map(o =>
+    `<option value="${o}">${o}</option>`
+  ).join('');
+
+  sections.forEach(sec => {
+    const div = document.createElement('div');
+    div.className = `section-card${sec.collapsed ? ' collapsed' : ''}`;
+    div.id = `sec-${sec.id}`;
+
+    const itemsHTML = sec.items.map(item => {
+      const subsHTML = item.subs.map(sub => `
+        <div class="item-sub-row">
+          <div class="sub-input-wrap">
+            ${sub.label ? `<span class="sub-label">${esc(sub.label)}</span>` : ''}
+            <input type="text" id="sub-val-${sub.id}" class="sub-value" value="${esc(sub.value)}" placeholder="…" oninput="onInput()">
+          </div>
+          <button class="sub-del-btn" tabindex="-1" onclick="deleteSub(${sec.id},${item.id},${sub.id})" title="Remove">×</button>
+        </div>
+      `).join('');
+
+      return `
+        <div class="item-row">
+          <span class="item-bullet">•</span>
+          <div class="item-fields">
+            <div class="item-key-val">
+              <input type="text" id="item-key-${item.id}" class="key-input" value="${esc(item.key)}" placeholder="Sign type label" oninput="onInput()">
+              <input type="text" id="item-val-${item.id}" class="val-input" value="${esc(item.val)}" placeholder="Type / Detail" oninput="onInput()">
+            </div>
+            ${item.subs.length > 0 ? `<div class="item-sub-rows">${subsHTML}</div>` : ''}
+            <div class="item-actions">
+              <button class="btn-sm" tabindex="-1" onclick="addSub(${sec.id},${item.id})">+ Add Spec Line</button>
+            </div>
+          </div>
+          <button class="item-del-btn" tabindex="-1" onclick="deleteItem(${sec.id},${item.id})" title="Remove item">×</button>
+        </div>
+      `;
+    }).join('');
+
+    const emptyState = sec.items.length === 0
+      ? `<div class="section-empty-hint">Use the dropdown below to add a sign type</div>`
+      : '';
+
+    div.innerHTML = `
+      <div class="section-header" onclick="toggleSection(${sec.id})">
+        <span class="section-drag">⠿</span>
+        <input class="section-title-input" id="sec-title-${sec.id}"
+          value="${esc(sec.title)}" placeholder="Section name…"
+          onclick="event.stopPropagation()"
+          oninput="onInput()">
+        <button class="section-del-btn" tabindex="-1" onclick="event.stopPropagation(); deleteSection(${sec.id})" title="Remove section">×</button>
+        <span class="section-chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="items-list">${itemsHTML}</div>
+        ${emptyState}
+        <div class="section-add-item" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px;">
+          <select id="signtype-sel-${sec.id}" class="signtype-sel" tabindex="-1" onchange="addSignTypeToSection(${sec.id}, this.value)">
+            <option value="">+ Add sign type…</option>
+            ${signTypeOptions}
+          </select>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+// ──────────────────────────────────────────
+//  RENDER PRESETS
+// ──────────────────────────────────────────
+
+function renderPresets() {
+  // Elevations
+  const elevContainer = document.getElementById('elevation-presets');
+  elevContainer.innerHTML = '';
+  ELEVATION_PRESETS.forEach(preset => {
+    const btn = document.createElement('button');
+    btn.className = 'preset-pill';
+    btn.textContent = '+ ' + preset.label;
+    btn.onclick = () => addElevation(preset.label);
+    elevContainer.appendChild(btn);
+  });
+
+  // Sign Types (standalone)
+  const stContainer = document.getElementById('signtype-presets');
+  stContainer.innerHTML = '';
+  STANDALONE_PRESETS.forEach(preset => {
+    const btn = document.createElement('button');
+    btn.className = 'preset-pill';
+    btn.textContent = '+ ' + preset.label;
+    btn.onclick = () => addStandaloneSection(preset);
+    stContainer.appendChild(btn);
+  });
+}
+
+// ──────────────────────────────────────────
+//  OUTPUT GENERATION
+// ──────────────────────────────────────────
+
+function buildOutput() {
+  syncFromDOM();
+
+  const projNotes = (document.getElementById('proj-notes')?.value || '').trim();
+
+  // ── Plain text (for preview) ──
+  let lines = [];
+  if (projNotes) lines.push(projNotes);
+
+  // ── Rich HTML (for clipboard → Wrike) ──
+  let html = '';
+  if (projNotes) html += `<p>${escHtml(projNotes)}</p>`;
+
+  sections.forEach(sec => {
+    if (lines.length > 0) lines.push('');
+    lines.push(sec.title);
+    html += `<p><strong>${escHtml(sec.title)}</strong></p>`;
+
+    const itemLines = [];
+    sec.items.forEach(item => {
+      const keyPart = item.key.trim();
+      const valPart = item.val.trim();
+      if (!keyPart && !valPart) return;
+
+      const itemLabel = valPart
+        ? `${keyPart}${keyPart ? ' - ' : ''}${valPart}`
+        : keyPart;
+
+      lines.push(`• ${itemLabel}`);
+
+      const subItems = item.subs.filter(s => (s.label + (s.value || '')).trim());
+      itemLines.push({ label: itemLabel, subs: subItems });
+
+      subItems.forEach(sub => {
+        lines.push(`    ◦ ${(sub.label + (sub.value || '')).trim()}`);
+      });
+    });
+
+    if (itemLines.length > 0) {
+      html += '<ul>';
+      itemLines.forEach(({ label, subs }) => {
+        if (subs.length > 0) {
+          html += `<li><strong>${escHtml(label)}</strong><ul>`;
+          subs.forEach(sub => {
+            html += `<li>${escHtml((sub.label + (sub.value || '')).trim())}</li>`;
+          });
+          html += '</ul></li>';
+        } else {
+          html += `<li><strong>${escHtml(label)}</strong></li>`;
+        }
+      });
+      html += '</ul>';
+    }
+  });
+
+  return { plainText: lines.join('\n'), html };
+}
+
+function renderOutput() {
+  const { plainText } = buildOutput();
+  const pre = document.getElementById('output-pre');
+  if (plainText.trim()) {
+    pre.textContent = plainText;
+    pre.classList.remove('output-empty');
+  } else {
+    pre.innerHTML = '<span class="output-empty">Fill in the fields above to generate your design request…</span>';
+  }
+}
+
+// ──────────────────────────────────────────
+//  COPY
+// ──────────────────────────────────────────
+
+async function copyOutput(e) {
+  syncFromDOM();
+  const pre = document.getElementById('output-pre');
+  if (pre.querySelector('.output-empty') || !pre.textContent.trim()) return;
+
+  const { html } = buildOutput();
+
+  // Use a hidden contenteditable element and execCommand('copy')
+  // This is the most reliable cross-browser way to copy rich HTML
+  const el = document.createElement('div');
+  el.contentEditable = 'true';
+  el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;white-space:pre-wrap;';
+  el.innerHTML = html;
+  document.body.appendChild(el);
+
+  // Select all content in the element
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  try {
+    document.execCommand('copy');
+  } catch(err) {
+    console.warn('Copy failed:', err);
+  }
+
+  sel.removeAllRanges();
+  document.body.removeChild(el);
+
+  // Animate button
+  const btn = document.getElementById('copy-btn');
+  const ripple = document.createElement('span');
+  ripple.className = 'copy-ripple';
+  const rect = btn.getBoundingClientRect();
+  const cx = e ? e.clientX - rect.left : rect.width / 2;
+  const cy = e ? e.clientY - rect.top  : rect.height / 2;
+  ripple.style.left = (cx - 15) + 'px';
+  ripple.style.top  = (cy - 15) + 'px';
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 600);
+
+  btn.classList.add('copied');
+  setTimeout(() => btn.classList.remove('copied'), 2200);
+}
+
+// ──────────────────────────────────────────
+//  HELPERS
+// ──────────────────────────────────────────
+
+function esc(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function escHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function onInput() { renderOutput(); }
+
+// ──────────────────────────────────────────
+//  INIT
+// ──────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderPresets();
+});
+</script>
+</body>
+</html>
